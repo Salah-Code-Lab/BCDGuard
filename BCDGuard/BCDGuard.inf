@@ -4,7 +4,7 @@
 [Version]
 Signature   = "$WINDOWS NT$"
 Class       = "SecurityEnhancer"
-ClassGuid   = {d2d36364-4b53-43b2-9a4d-08a6d6672d57}
+ClassGuid   = {d02bc3da-0c8e-4945-9bd5-f1883c226c8c}
 Provider    = %ProviderString%
 DriverVer   = 01/01/2026,1.0.0.0
 CatalogFile = BCDGuard.cat

@@ -1,0 +1,133 @@
+; BCDGuard.inf
+; BCD Write Protection Minifilter
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = "ActivityMonitor"
+ClassGuid   = {b86dff51-a31e-4bac-b3cf-e8cfe75c9fc2}
+Provider    = %ProviderString%
+DriverVer   = 01/01/2026,1.0.0.0
+CatalogFile = BCDGuard.cat
+PnpLockdown = 1
+
+[SourceDisksNames]
+1 = %Disk1%
+
+[SourceDisksFiles]
+BCDGuard.sys = 1
+
+[DestinationDirs]
+BCDGuardDownlevel.CopyDriverFiles = 12            ;%windir%\system32\drivers
+BCDGuardDownlevel.DelDriverFiles  = 12            ;%windir%\system32\drivers
+BCDGuard.DriverFiles              = 13            ;driver store
+
+;;
+;; Default install sections
+;;
+
+[DefaultInstall.NTamd64.10.0...25952]
+OptionDesc          = %BCDGuardServiceDesc%
+CopyFiles           = BCDGuard.DriverFiles
+
+[DefaultInstall.NTamd64.10.0...25952.Services]
+AddService          = %BCDGuardServiceName%,,BCDGuard.Service
+
+;
+; Support sections
+;
+
+[BCDGuard.Service]
+DisplayName      = %BCDGuardServiceName%
+Description      = %BCDGuardServiceDesc%
+ServiceBinary    = %13%\BCDGuard.sys              ;driver store
+Dependencies     = %FltmgrServiceName%            ;FltMgr
+ServiceType      = 2                              ;SERVICE_FILE_SYSTEM_DRIVER
+StartType        = 1                              ;SERVICE_SYSTEM_START
+ErrorControl     = 1                              ;SERVICE_ERROR_NORMAL
+LoadOrderGroup   = "FSFilter Security Enhancer"
+AddReg           = BCDGuard.AddRegistry, Common.AddRegistry
+
+[BCDGuard.AddRegistry]
+HKR,"Parameters","SupportedFeatures",0x00010001,0x3
+HKR,"Parameters\Instances",%RegDefaultInstanceValueName%,0x00000000,%DefaultInstance%
+HKR,"Parameters\Instances\%Instance1.Name%",%RegAltitudeValueName%,0x00000000,%Instance1.Altitude%
+HKR,"Parameters\Instances\%Instance1.Name%",%RegFlagsValueName%,0x00010001,%Instance1.Flags%
+
+[BCDGuard.DriverFiles]
+BCDGuard.sys
+
+;;
+;; Registry values shared for all OS versions
+;;
+
+[Common.AddRegistry]
+HKR,"Parameters","DebugFlags",0x00010001,0
+
+;;
+;; Downlevel default install sections
+;;
+
+[DefaultInstall.NTamd64]
+OptionDesc          = %BCDGuardServiceDesc%
+CopyFiles           = BCDGuardDownlevel.CopyDriverFiles
+
+[DefaultInstall.NTamd64.Services]
+AddService          = %BCDGuardServiceName%,,BCDGuardDownlevel.Service
+
+;;
+;; Downlevel default uninstall sections
+;;
+
+[DefaultUninstall.NTamd64]
+LegacyUninstall = 1
+DelFiles        = BCDGuardDownlevel.DelDriverFiles
+
+[DefaultUninstall.NTamd64.Services]
+DelService      = %BCDGuardServiceName%,0x204
+
+;
+; Downlevel support sections
+;
+
+[BCDGuardDownlevel.Service]
+DisplayName      = %BCDGuardServiceName%
+Description      = %BCDGuardServiceDesc%
+ServiceBinary    = %12%\BCDGuard.sys              ;%windir%\system32\drivers
+Dependencies     = %FltmgrServiceName%            ;FltMgr
+ServiceType      = 2                              ;SERVICE_FILE_SYSTEM_DRIVER
+StartType        = 1                              ;SERVICE_SYSTEM_START
+ErrorControl     = 1                              ;SERVICE_ERROR_NORMAL
+LoadOrderGroup   = "FSFilter Security Enhancer"
+AddReg           = BCDGuardDownlevel.AddRegistry, Common.AddRegistry
+
+[BCDGuardDownlevel.AddRegistry]
+HKR,,"SupportedFeatures",0x00010001,0x3
+HKR,"Instances",%RegDefaultInstanceValueName%,0x00000000,%DefaultInstance%
+HKR,"Instances\%Instance1.Name%",%RegAltitudeValueName%,0x00000000,%Instance1.Altitude%
+HKR,"Instances\%Instance1.Name%",%RegFlagsValueName%,0x00010001,%Instance1.Flags%
+
+[BCDGuardDownlevel.CopyDriverFiles]
+BCDGuard.sys
+
+[BCDGuardDownlevel.DelDriverFiles]
+BCDGuard.sys
+
+;;
+;; String Section
+;;
+
+[Strings]
+ProviderString                      = "Sifps"
+BCDGuardServiceDesc                 = "BCD Write Protection Filter"
+BCDGuardServiceName                 = "BCDGuard"
+FltmgrServiceName                   = "FltMgr"
+RegDefaultInstanceValueName         = "DefaultInstance"
+RegAltitudeValueName                = "Altitude"
+RegFlagsValueName                   = "Flags"
+Disk1                               = "BCDGuard Installation Disk"
+
+;Instances specific information.
+DefaultInstance      = "BCDGuard Instance"
+Instance1.Name       = "BCDGuard Instance"
+Instance1.Altitude   = "402040"
+Instance1.Flags      = 0x0

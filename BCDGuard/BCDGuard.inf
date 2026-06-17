@@ -3,8 +3,8 @@
 
 [Version]
 Signature   = "$WINDOWS NT$"
-Class       = "ActivityMonitor"
-ClassGuid   = {b86dff51-a31e-4bac-b3cf-e8cfe75c9fc2}
+Class       = "SecurityEnhancer"
+ClassGuid   = {d2d36364-4b53-43b2-9a4d-08a6d6672d57}
 Provider    = %ProviderString%
 DriverVer   = 01/01/2026,1.0.0.0
 CatalogFile = BCDGuard.cat

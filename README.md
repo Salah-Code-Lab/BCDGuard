@@ -21,4 +21,5 @@ You can edit the UNICODE string manually to protect anything else but i don't gu
 
 
 
-> go back to root https://github.com/Salah-Code-Lab
+> io web: https://salah-code-lab.github.io/BCDGuard/
+> 

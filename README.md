@@ -15,3 +15,10 @@ C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\km\x64\FltMgr.lib
 
 # Additional:
 You can edit the UNICODE string manually to protect anything else but i don't guarentee that it may work
+
+
+
+
+
+
+> go back to root https://github.com/Salah-Code-Lab

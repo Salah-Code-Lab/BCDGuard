@@ -282,5 +282,4 @@ and all other False positives that may be triggered
 Thanks for Viewing/loading BCDGuard 
 and Viewing/Loading Salah-Code-Lab Solutions
 remember Stay safe ! 
-and yes i repeated it twice to REMIND DUMBASSES 
 */

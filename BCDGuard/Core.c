@@ -1,40 +1,4 @@
-// BCDGuard.c
 
-/*
-This Driver is meant to protect the BCD files but there is functionality loss
-If you do Shift + Restart
-you will boot to WinRE
-BUT without any of the options the only option is to boot to UEFI mode
-And you no longer can edit the BCD while booting normally
-you have to boot to safe mode to do so
-So Dual boot or writing new flags to the BCD will have a MINOR just a MINOR inconvenience because you must hard shut down
-the OS twice
-By loading this driver you accept the functionality loos
-and all other False positives that may be triggered
-Thanks for Viewing/loading BCDGuard
-and Viewing/Loading Salah-Code-Lab Solutions
-remember Stay safe !
-*/
-
-// BCDGuard.c
-
-/*
-* BCDGuard (Debugging / Analysis Version)
-* 
-This Driver is meant to protect the BCD files but there is functionality loss
-If you do Shift + Restart
-you will boot to WinRE
-BUT without any of the options the only option is to boot to UEFI mode
-And you no longer can edit the BCD while booting normally
-you have to boot to safe mode to do so
-So Dual boot or writing new flags to the BCD will have a MINOR just a MINOR inconvenience because you must hard shut down
-the OS twice
-By loading this driver you accept the functionality loos
-and all other False positives that may be triggered
-Thanks for Viewing/loading BCDGuard
-and Viewing/Loading Salah-Code-Lab Solutions
-remember Stay safe !
-*/
 #include <ntifs.h>
 #include <ntddk.h>
 #include <ntstatus.h>

@@ -16,20 +16,44 @@ and Viewing/Loading Salah-Code-Lab Solutions
 remember Stay safe !
 */
 
+// BCDGuard.c
+
+/*
+* BCDGuard (Debugging / Analysis Version)
+* 
+This Driver is meant to protect the BCD files but there is functionality loss
+If you do Shift + Restart
+you will boot to WinRE
+BUT without any of the options the only option is to boot to UEFI mode
+And you no longer can edit the BCD while booting normally
+you have to boot to safe mode to do so
+So Dual boot or writing new flags to the BCD will have a MINOR just a MINOR inconvenience because you must hard shut down
+the OS twice
+By loading this driver you accept the functionality loos
+and all other False positives that may be triggered
+Thanks for Viewing/loading BCDGuard
+and Viewing/Loading Salah-Code-Lab Solutions
+remember Stay safe !
+*/
+#include <ntifs.h>
+#include <ntddk.h>
+#include <ntstatus.h>
 #include <fltKernel.h>
 #include <ntdddisk.h>
 #include <ntstrsafe.h>
 
 #pragma prefast(disable:__WARNING_ENCODE_MEMBER_FUNCTION_POINTER, "Not valid for kernel mode drivers")
-
+NTSTATUS FilterUnload(_In_ FLT_FILTER_UNLOAD_FLAGS Flags);
 PFLT_FILTER gFilterHandle = NULL;
 BOOLEAN gProtectionActive = FALSE;
+BOOLEAN g_AllowUnload = FALSE;
+
 
 BOOLEAN g_MBRP = FALSE;
 BOOLEAN g_EFIP = FALSE;
 extern PULONG InitSafeBootMode;
 
-// Standard GPT paths 
+// Standard GPT and MBR paths 
 UNICODE_STRING gSystemBootBcdRel = RTL_CONSTANT_STRING(L"\\Windows\\Boot\\DVD\\EFI\\BCD");
 UNICODE_STRING gSystem32BcdRel = RTL_CONSTANT_STRING(L"\\Windows\\System32\\Config\\BCD-Template");
 UNICODE_STRING gEfiBcdRel = RTL_CONSTANT_STRING(L"\\EFI\\Microsoft\\Boot\\BCD");
@@ -40,8 +64,8 @@ UNICODE_STRING gMbrWinreBcdRel = RTL_CONSTANT_STRING(L"\\Windows\\Boot\\DVD\\PCA
 
 // Instance context
 typedef struct _INSTANCE_CONTEXT {
-    BOOLEAN IsFat32; 
-    BOOLEAN IsNtfs;  
+    BOOLEAN IsFat32;
+    BOOLEAN IsNtfs;
 } INSTANCE_CONTEXT, * PINSTANCE_CONTEXT;
 
 
@@ -173,7 +197,6 @@ FLT_PREOP_CALLBACK_STATUS HandlePreOperation(
     if (IsProtectedPath(nameInfo, instanceCtx)) {
         FltReleaseFileNameInformation(nameInfo);
         if (instanceCtx) FltReleaseContext(instanceCtx);
-
         Data->IoStatus.Status = STATUS_ACCESS_DENIED;
         Data->IoStatus.Information = 0;
         return FLT_PREOP_COMPLETE;
@@ -192,12 +215,12 @@ FLT_PREOP_CALLBACK_STATUS PreCreate(_Inout_ PFLT_CALLBACK_DATA Data, _In_ PCFLT_
 
 FLT_PREOP_CALLBACK_STATUS PreWrite(_Inout_ PFLT_CALLBACK_DATA Data, _In_ PCFLT_RELATED_OBJECTS FltObjects, _Flt_CompletionContext_Outptr_ PVOID* CompletionContext) {
     UNREFERENCED_PARAMETER(CompletionContext);
-    
+
     if (!gProtectionActive) return FLT_PREOP_SUCCESS_NO_CALLBACK;
 
     PVOID streamCtx = NULL;
     NTSTATUS status = FltGetStreamContext(FltObjects->Instance, FltObjects->FileObject, &streamCtx);
-    
+
     if (NT_SUCCESS(status)) {
         // Context exists, meaning this stream belongs to a protected BCD file!
         FltReleaseContext(streamCtx);
@@ -231,32 +254,40 @@ CONST FLT_CONTEXT_REGISTRATION ContextNotifications[] = {
     { FLT_INSTANCE_CONTEXT, 0, NULL, sizeof(INSTANCE_CONTEXT), 'BcdI', NULL, NULL, NULL },
     { FLT_CONTEXT_END }
 };
-
 CONST FLT_REGISTRATION FilterRegistration = {
-    sizeof(FLT_REGISTRATION), FLT_REGISTRATION_VERSION, 0,
-    ContextNotifications, Callbacks,
-    NULL, InstanceSetup, InstanceQueryTeardown, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+    sizeof(FLT_REGISTRATION),
+    FLT_REGISTRATION_VERSION,
+    0,
+    ContextNotifications,
+    Callbacks,
+   FilterUnload, 
+    InstanceSetup,
+    InstanceQueryTeardown,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
 
-VOID DriverUnload(PDRIVER_OBJECT DriverObject) {
-    UNREFERENCED_PARAMETER(DriverObject);
+
+NTSTATUS FilterUnload(_In_ FLT_FILTER_UNLOAD_FLAGS Flags) {
+
+    UNREFERENCED_PARAMETER(Flags);
+
     gProtectionActive = FALSE;
-    if (gFilterHandle) {
+
+    // 3. Unregister the filter cleanly if it was registered
+    if (gFilterHandle != NULL) {
         FltUnregisterFilter(gFilterHandle);
         gFilterHandle = NULL;
     }
+
+    return STATUS_SUCCESS;
 }
 
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) {
     UNREFERENCED_PARAMETER(RegistryPath);
     NTSTATUS status;
-    // FIX: Dereference the pointer spent some time to figure it out :D
-    if (InitSafeBootMode != NULL && *InitSafeBootMode != 0) {
-        DriverObject->DriverUnload = DriverUnload;
-        return STATUS_SUCCESS;
-    }
 
-     status = FltRegisterFilter(DriverObject, &FilterRegistration, &gFilterHandle);
+
+    status = FltRegisterFilter(DriverObject, &FilterRegistration, &gFilterHandle);
     if (!NT_SUCCESS(status)) {
         return status;
     }
@@ -269,12 +300,10 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) 
     }
 
     gProtectionActive = TRUE;
-    DriverObject->DriverUnload = NULL;
-    
+
 
     return STATUS_SUCCESS;
 }
-
 /*
 This Driver is meant to protect the BCD files but there is functionality loss 
 If you do Shift + Restart 
